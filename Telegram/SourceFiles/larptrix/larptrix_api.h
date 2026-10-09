@@ -34,6 +34,7 @@ public:
 		const QString &accessKey,
 		const QString &deviceName = QString());
 	void fetchCurrentUser();
+	void fetchFriends();
 	void logout();
 
 signals:
