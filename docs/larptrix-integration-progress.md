@@ -6,6 +6,8 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 
 - [x] Add an isolated `Larptrix::Api` HTTP client under `Telegram/SourceFiles/larptrix/`.
 - [x] Add a transport-independent `SessionModel` that caches current user, friends, directory, groups, chat history and message metadata from server events.
+- [x] Add an optional Qt WebSockets transport for authenticated `/ws` with Larptrix session-cookie forwarding, same-origin `Origin`, JSON event parsing, a heartbeat, presence, and open-chat requests.
+- [x] Route WebSocket events through `SessionModel`, including directory, groups, chat history, live messages, deletes, reactions, views and presence.
 - [x] Normalize and validate an HTTP(S) server base URL; a missing scheme defaults to HTTPS.
 - [x] Implement password and access-key login requests to `POST /api/login`.
 - [x] Send a device name with login requests.
@@ -23,8 +25,6 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 ## Not implemented yet
 
 - [ ] Replace the existing Telegram intro and MTProto account/session lifecycle.
-- [x] Add an optional Qt WebSockets transport for authenticated `/ws` with Larptrix session-cookie forwarding, same-origin `Origin`, JSON event parsing, a heartbeat, presence, and open-chat requests.
-- [x] Route WebSocket events through `SessionModel`, including directory, groups, chat history, live messages, deletes, reactions, views and presence.
 - [ ] Render real-time users, groups, and chat history using the existing FreshGram UI components and Larptrix data models.
 - [ ] Port Matrix-compatible E2E device setup/decryption before rendering message contents or enabling message sending.
 - [ ] Replace Telegram data models and history UI with Larptrix users, groups, channels, and messages.
