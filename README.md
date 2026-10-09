@@ -19,8 +19,29 @@ See:
 
 - [Architecture audit and source map](docs/architecture-audit.md)
 - [Larptrix-only port plan](docs/larptrix-port-plan.md)
+- [Nix flake](flake.nix)
 
 Development work is currently happening on the `larptrix-port` branch so that the `main` branch remains untouched.
+
+## NixOS
+
+The flake provides a development shell with common Linux build dependencies and a launcher for an already-built checkout:
+
+```bash
+git clone --recurse-submodules --branch larptrix-port https://github.com/q933598-ai/freshtrix.git
+cd freshtrix
+nix develop
+```
+
+After the app has been built, launch it from the repository with:
+
+```bash
+nix run
+```
+
+The launcher checks the usual upstream output paths. If no executable exists yet, it prints the next steps instead of pretending the app was built. The inherited upstream build is large and currently requires the upstream build process; see [build baseline](docs/build-baseline.md).
+
+**Important:** this Nix setup is an initial development/launch scaffold, not yet a self-contained package derivation. The current source still builds the FreshGram/Telegram-based application, not a usable Larptrix client. The Nix setup does not remove Telegram/MTProto code or make Larptrix login work.
 
 ## Upstream and licensing
 
@@ -33,4 +54,3 @@ Freshtrix is an independent, experimental project and is not an official release
 ## Build notes
 
 At this stage, upstream build instructions build the underlying FreshGram/Telegram Desktop application, **not a working Larptrix client**. Do not add real Larptrix credentials or expect Larptrix login to work until the port is implemented. See the [upstream build documentation](https://github.com/Snowy-Fluffy/freshGram#build-instructions) for baseline build prerequisites.
-
