@@ -6,6 +6,19 @@ Freshtrix is intended to connect **only to Larptrix**. Telegram accounts, Telegr
 
 This is an architecture plan, not a claim that the port is already implemented.
 
+## Server and decentralization: important distinction
+
+Larptrix already has a separate Rust/Axum server, SQLite storage, file uploads, HTTP API, authenticated WebSocket, Docker Compose deployment, Caddy HTTPS setup, and a Debian installer. Freshtrix is a client and must connect to a chosen Larptrix server; it should not embed or secretly start a server inside the desktop app.
+
+However, **self-hosting is not the same as federation**. The current Larptrix server README describes a self-hosted server for a small group, and its documented architecture delivers messages between accounts on that one server. A person can run their own instance, but the currently documented protocol does not yet let users on independent instances message each other automatically. We must not claim full cross-server decentralization until a server-to-server federation protocol is implemented and tested.
+
+The product should be built in two tracks:
+
+1. **Client track:** Freshtrix can connect to any compatible Larptrix server URL, authenticate, and use its API/WebSocket.
+2. **Server track:** keep the existing standalone server deployable and maintainable; add tests, repeatable releases and safe upgrades/backups. Separately design federation (node identity/keys, discovery or explicit peer configuration, signed server-to-server requests, remote-user addressing, message delivery, group semantics, abuse/rate limits and E2E-preserving relays) before implementing it.
+
+Federation is a server protocol feature, not something the desktop client alone can provide. Until it exists, multiple self-hosted instances are independent islands.
+
 ## What we can reuse
 
 - Desktop UI and interaction patterns from FreshGram / Telegram Desktop, after checking dependencies and licensing.
@@ -83,6 +96,27 @@ Authentication differs from Telegram: Larptrix currently supports an access key 
 4. Add tests and CI checks for the Larptrix adapter and protocol mapping.
 
 **Exit condition:** a Larptrix-only desktop client with no Telegram account/backend fallback.
+
+## Server milestones
+
+### Server milestone A — keep today's self-hosting usable
+
+- Preserve the separate Rust server and its existing Docker Compose/Caddy/Debian installer.
+- Ensure Freshtrix can point at any configured server instead of hard-coding the developer's VPS.
+- Add or retain server smoke tests for registration/login, authenticated `/api/me`, WebSocket authentication, sending/receiving messages, and persistent data across container restarts.
+- Document backups and upgrades; never overwrite user data when deploying a new server build.
+
+**Exit condition:** an operator can deploy a server independently, and two accounts on that instance can use the client.
+
+### Server milestone B — federation design, before federation code
+
+- Define globally unique user addressing across servers and how a user's home server is discovered.
+- Define signed/authenticated server-to-server requests, replay protection, trust and key rotation.
+- Specify remote message delivery, retries, duplicate handling, offline delivery/history, blocks, friend requests, groups/channels, and failure behavior.
+- Keep E2E ciphertext opaque to relay servers wherever the protocol supports it; explicitly document metadata that remains visible.
+- Add protocol conformance tests with at least two independently configured server instances.
+
+**Exit condition:** a written protocol and interoperable two-node test plan are reviewed before federation is advertised as implemented.
 
 ## Non-goals for the first milestone
 
