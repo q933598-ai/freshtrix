@@ -23,6 +23,10 @@ class Widget;
 enum class EnterPoint : uchar;
 } // namespace Intro
 
+namespace Larptrix {
+class LoginWidget;
+} // namespace Larptrix
+
 namespace Window {
 class MediaPreviewWidget;
 class SectionMemento;
@@ -141,6 +145,7 @@ private:
 	object_ptr<Window::PasscodeLockWidget> _passcodeLock = { nullptr };
 	object_ptr<Window::SetupEmailLockWidget> _setupEmailLock = { nullptr };
 	object_ptr<Intro::Widget> _intro = { nullptr };
+	object_ptr<Larptrix::LoginWidget> _larptrixLogin = { nullptr };
 	object_ptr<MainWidget> _main = { nullptr };
 	base::unique_qptr<Ui::LayerStackWidget> _layer;
 	rpl::variable<bool> _boxShown = false;
