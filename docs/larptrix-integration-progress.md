@@ -12,10 +12,11 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 - [x] Implement `GET /api/me` and `POST /api/logout`.
 - [x] Emit success/failure and authentication-state signals.
 - [x] Register the new C++ files in the existing desktop target.
+- [x] Add a centered, FreshGram-inspired Larptrix login widget with server URL, email/password and access-key modes, connection/error status, and authenticated-user signal.
 
 ## Not implemented yet
 
-- [ ] Show a Larptrix server/login screen at application startup.
+- [ ] Wire the new login widget into `MainWindow` startup so it replaces the Telegram intro instead of merely compiling as a component.
 - [ ] Replace the existing Telegram intro and MTProto account/session lifecycle.
 - [ ] Implement the `/ws` client and parse Larptrix server events.
 - [ ] Replace Telegram data models and history UI with Larptrix users, groups, channels, and messages.
