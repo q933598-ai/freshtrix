@@ -13,6 +13,7 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 - [x] Emit success/failure and authentication-state signals.
 - [x] Register the new C++ files in the existing desktop target.
 - [x] Add a centered, FreshGram-inspired Larptrix login widget with server URL, email/password and access-key modes, connection/error status, and authenticated-user signal.
+- [x] Remember the selected server URL between launches; clear password/access-key fields after successful authentication.
 
 ## Not implemented yet
 
