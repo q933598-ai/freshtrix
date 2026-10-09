@@ -2888,4 +2888,6 @@ endif()
 target_sources(Telegram PRIVATE
     SourceFiles/larptrix/larptrix_api.cpp
     SourceFiles/larptrix/larptrix_api.h
+    SourceFiles/larptrix/larptrix_login_widget.cpp
+    SourceFiles/larptrix/larptrix_login_widget.h
 )
