@@ -9,6 +9,7 @@ notices for any upstream-derived code.
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtNetwork/QNetworkAccessManager>
+#include <QtCore/QByteArray>
 #include <QtNetwork/QNetworkReply>
 
 namespace Larptrix {
@@ -25,6 +26,7 @@ public:
 	bool setServerUrl(const QString &url, QString *error = nullptr);
 	[[nodiscard]] QString serverUrl() const;
 	[[nodiscard]] bool isConfigured() const;
+	[[nodiscard]] QByteArray sessionCookieHeader() const;
 
 	void loginWithPassword(
 		const QString &email,
