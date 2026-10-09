@@ -12,6 +12,7 @@ This file is part of the Freshtrix experimental port.
 class QLineEdit;
 class QLabel;
 class QPushButton;
+class QListWidget;
 
 namespace Larptrix {
 
@@ -42,6 +43,7 @@ private:
 	QPushButton *_accessKeyMode = nullptr;
 	QPushButton *_login = nullptr;
 	QLabel *_status = nullptr;
+	QListWidget *_friendsList = nullptr;
 	bool _usingAccessKey = false;
 };
 
