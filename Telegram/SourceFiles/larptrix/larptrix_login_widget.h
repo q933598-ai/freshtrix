@@ -5,6 +5,7 @@ This file is part of the Freshtrix experimental port.
 #pragma once
 
 #include "larptrix/larptrix_api.h"
+#include "larptrix/larptrix_session_model.h"
 
 #include <QtWidgets/QWidget>
 
@@ -36,6 +37,7 @@ private:
 	void showError(const QString &message);
 
 	Api _api;
+	SessionModel _model;
 	QLineEdit *_server = nullptr;
 	QLineEdit *_email = nullptr;
 	QLineEdit *_password = nullptr;
