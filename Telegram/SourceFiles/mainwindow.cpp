@@ -26,6 +26,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "export/export_manager.h"
 #include "inline_bots/bot_attach_web_view.h" // AttachWebView::cancel.
 #include "intro/intro_widget.h"
+#include "larptrix/larptrix_login_widget.h"
 #include "main/main_session.h"
 #include "main/main_account.h" // Account::sessionValue.
 #include "main/main_domain.h"
@@ -151,6 +152,8 @@ void MainWindow::finishFirstShow() {
 
 	if (!_passcodeLock && !_setupEmailLock && _main) {
 		_main->activate();
+	} else if (!_passcodeLock && !_setupEmailLock && _larptrixLogin) {
+		_larptrixLogin->setFocus();
 	} else if (!_passcodeLock && !_setupEmailLock && _intro) {
 		_intro->setInnerFocus();
 	}
@@ -160,6 +163,7 @@ void MainWindow::clearWidgetsHook() {
 	_mediaPreview.destroy();
 	_main.destroy();
 	_intro.destroy();
+	_larptrixLogin.destroy();
 	if (!Core::App().passcodeLocked()) {
 		_passcodeLock.destroy();
 	}
@@ -280,36 +284,19 @@ void MainWindow::setupIntro(
 		Intro::EnterPoint point,
 		Main::Account *accountBeforeIntro,
 		QPixmap oldContentCache) {
-	auto animated = (_main || _passcodeLock || _setupEmailLock);
+	// Freshtrix is being ported away from Telegram accounts and MTProto.
+	// Use Larptrix's server-selected HTTP session login as the initial surface.
+	Q_UNUSED(point);
+	Q_UNUSED(accountBeforeIntro);
+	Q_UNUSED(oldContentCache);
 
 	destroyLayer();
-	auto created = object_ptr<Intro::Widget>(
-		bodyWidget(),
-		&controller(),
-		&account(),
-		point,
-		accountBeforeIntro);
-	created->showSettingsRequested(
-	) | rpl::on_next([=] {
-		showSettings();
-	}, created->lifetime());
-
+	auto created = object_ptr<Larptrix::LoginWidget>(bodyWidget());
 	clearWidgets();
-	_intro = std::move(created);
-	DragArea::SetupProxyDropArea(_intro.data(), [](const QString &localUrl) {
-		Core::App().openLocalUrl(localUrl, {});
-	});
-	if (_passcodeLock || _setupEmailLock) {
-		_intro->hide();
-	} else {
-		_intro->show();
-		updateControlsGeometry();
-		if (animated) {
-			_intro->showAnimated(std::move(oldContentCache));
-		} else {
-			setInnerFocus();
-		}
-	}
+	_larptrixLogin = std::move(created);
+	updateControlsGeometry();
+	_larptrixLogin->show();
+	_larptrixLogin->setFocus();
 	fixOrder();
 }
 
@@ -319,6 +306,7 @@ void MainWindow::setupMain(
 	Expects(account().sessionExists());
 
 	const auto animated = _intro
+		|| _larptrixLogin
 		|| (_passcodeLock && !Core::App().passcodeLocked())
 		|| _setupEmailLock;
 	const auto weakAnimatedLayer = (_main
@@ -767,6 +755,7 @@ void MainWindow::updateControlsGeometry() {
 			body.height() });
 	}
 	if (_intro) _intro->setGeometry(body);
+	if (_larptrixLogin) _larptrixLogin->setGeometry(body);
 	if (_layer) _layer->setGeometry(body);
 	if (_mediaPreview) _mediaPreview->setGeometry(body);
 	if (_testingThemeWarning) _testingThemeWarning->setGeometry(body);
