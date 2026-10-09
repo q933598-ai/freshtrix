@@ -2891,3 +2891,27 @@ target_sources(Telegram PRIVATE
     SourceFiles/larptrix/larptrix_login_widget.cpp
     SourceFiles/larptrix/larptrix_login_widget.h
 )
+
+# WebSockets is not part of every supported TDesktop Qt bundle. Enable the
+# realtime transport only when the selected Qt installation provides it.
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS WebSockets QUIET)
+if (TARGET Qt::WebSockets)
+    set(larptrix_websockets_target Qt::WebSockets)
+elseif (TARGET Qt${QT_VERSION_MAJOR}::WebSockets)
+    set(larptrix_websockets_target Qt${QT_VERSION_MAJOR}::WebSockets)
+else()
+    set(larptrix_websockets_target "")
+endif()
+
+if (larptrix_websockets_target)
+    target_sources(Telegram PRIVATE
+        SourceFiles/larptrix/larptrix_ws_client.cpp
+        SourceFiles/larptrix/larptrix_ws_client.h
+    )
+    target_link_libraries(Telegram PRIVATE ${larptrix_websockets_target})
+    target_compile_definitions(Telegram PRIVATE LARPTRIX_HAS_QT_WEBSOCKETS=1)
+    message(STATUS "Freshtrix: authenticated Larptrix WebSocket transport enabled")
+else()
+    target_compile_definitions(Telegram PRIVATE LARPTRIX_HAS_QT_WEBSOCKETS=0)
+    message(STATUS "Freshtrix: Qt WebSockets not found; Larptrix realtime transport is disabled")
+endif()
