@@ -43,50 +43,50 @@ LoginWidget::LoginWidget(QWidget *parent)
 	setMinimumSize(420, 520);
 	setStyleSheet(QStringLiteral(R"(
 		QWidget#larptrixLogin {
-			background: #242933;
-			color: #e5e9f0;
+			background: #1b1c17;
+			color: #e3e3d9;
 			font-family: "Inter", "Noto Sans", sans-serif;
 			font-size: 14px;
 		}
 		QLabel#brand {
-			color: #eceff4;
+			color: #e3e3d9;
 			font-size: 27px;
 			font-weight: 700;
 		}
 		QLabel#subtitle, QLabel#hint {
-			color: #aab3c2;
+			color: #c6c9b8;
 		}
 		QLineEdit {
-			background: #303744;
-			color: #eceff4;
-			border: 1px solid #454f60;
+			background: #272823;
+			color: #e3e3d9;
+			border: 1px solid #414238;
 			border-radius: 9px;
 			padding: 0 13px;
-			selection-background-color: #5e81ac;
+			selection-background-color: #bacf7a;
 		}
-		QLineEdit:focus { border: 1px solid #81a1c1; }
+		QLineEdit:focus { border: 1px solid #bacf7a; }
 		QPushButton {
 			min-height: 40px;
 			border-radius: 9px;
 			padding: 0 14px;
-			background: #343d4b;
-			color: #e5e9f0;
-			border: 1px solid #454f60;
+			background: #272823;
+			color: #e3e3d9;
+			border: 1px solid #414238;
 		}
-		QPushButton:hover { background: #414c5d; }
+		QPushButton:hover { background: #34352f; }
 		QPushButton#primary {
-			background: #5e81ac;
-			border: 1px solid #5e81ac;
+			background: #bacf7a;
+			border: 1px solid #bacf7a;
 			color: #ffffff;
 			font-weight: 600;
 		}
-		QPushButton#primary:hover { background: #7295c0; }
+		QPushButton#primary:hover { background: #c6d98c; }
 		QPushButton#mode[active="true"] {
-			background: #3b4656;
-			border: 1px solid #81a1c1;
+			background: #35382c;
+			border: 1px solid #bacf7a;
 		}
-		QLabel#status { color: #bf616a; }
-	QLabel#liveStatus { color: #aab3c2; font-size: 12px; }
+		QLabel#status { color: #e06c75; }
+	QLabel#liveStatus { color: #c6c9b8; font-size: 12px; }
 	)"));
 
 	auto root = new QVBoxLayout(this);
@@ -170,9 +170,9 @@ LoginWidget::LoginWidget(QWidget *parent)
 	_friendsList->setMinimumHeight(120);
 	_friendsList->setMaximumHeight(220);
 	_friendsList->setStyleSheet(QStringLiteral(
-		"QListWidget { background: #303744; color: #e5e9f0; border: 1px solid #454f60; border-radius: 9px; padding: 5px; }"
+		"QListWidget { background: #272823; color: #e3e3d9; border: 1px solid #414238; border-radius: 9px; padding: 5px; }"
 		"QListWidget::item { padding: 8px; border-radius: 5px; }"
-		"QListWidget::item:selected { background: #3b4656; }"));
+		"QListWidget::item:selected { background: #35382c; }"));
 	_friendsList->hide();
 	root->addWidget(_friendsList);
 
@@ -215,13 +215,13 @@ LoginWidget::LoginWidget(QWidget *parent)
 #if defined(LARPTRIX_HAS_QT_WEBSOCKETS) && LARPTRIX_HAS_QT_WEBSOCKETS
 	connect(_webSocket, &WebSocketClient::connected, this, [this] {
 		_liveStatus->setProperty("liveConnected", true);
-		_liveStatus->setStyleSheet(QStringLiteral("color: #a3be8c;"));
+		_liveStatus->setStyleSheet(QStringLiteral("color: #bacf7a;"));
 		_liveStatus->setText(QStringLiteral("Live connection established."));
 	});
 	connect(_webSocket, &WebSocketClient::connectionFailed, this,
 		[this](const QString &message) {
 			_liveStatus->setProperty("liveConnected", false);
-			_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+			_liveStatus->setStyleSheet(QStringLiteral("color: #e06c75;"));
 			_liveStatus->setText(QStringLiteral("Live connection failed: %1").arg(message));
 		});
 	connect(_webSocket, &WebSocketClient::disconnected, this, [this] {
@@ -232,13 +232,13 @@ LoginWidget::LoginWidget(QWidget *parent)
 	});
 	connect(_webSocket, &WebSocketClient::protocolError, this,
 		[this](const QString &message) {
-			_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+			_liveStatus->setStyleSheet(QStringLiteral("color: #e06c75;"));
 			_liveStatus->setText(message);
 		});
 	connect(_webSocket, &WebSocketClient::serverEvent,
 		&_model, &SessionModel::applyEvent);
 	connect(&_model, &SessionModel::sessionReady, this, [this] {
-		_liveStatus->setStyleSheet(QStringLiteral("color: #a3be8c;"));
+		_liveStatus->setStyleSheet(QStringLiteral("color: #bacf7a;"));
 		_liveStatus->setText(
 			QStringLiteral("Live updates connected · %1 directory entries")
 				.arg(_model.directory().size()));
@@ -257,7 +257,7 @@ LoginWidget::LoginWidget(QWidget *parent)
 		});
 	connect(&_model, &SessionModel::protocolError, this,
 		[this](const QString &message) {
-			_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+			_liveStatus->setStyleSheet(QStringLiteral("color: #e06c75;"));
 			_liveStatus->setText(message);
 		});
 	connect(_friendsList, &QListWidget::itemDoubleClicked, this,
@@ -305,7 +305,7 @@ LoginWidget::LoginWidget(QWidget *parent)
 				}
 			}
 			_friendsList->show();
-			_status->setStyleSheet(QStringLiteral("color: #a3be8c;"));
+			_status->setStyleSheet(QStringLiteral("color: #bacf7a;"));
 			_status->setText(QStringLiteral("Connected · %1 friend(s)").arg(friends.size()));
 		});
 	connect(&_api, &Api::authenticationChanged, this,
@@ -317,7 +317,7 @@ LoginWidget::LoginWidget(QWidget *parent)
 				QSettings().setValue(QStringLiteral("Larptrix/serverUrl"), _api.serverUrl());
 				_password->clear();
 				_accessKey->clear();
-				_status->setStyleSheet(QStringLiteral("color: #a3be8c;"));
+				_status->setStyleSheet(QStringLiteral("color: #bacf7a;"));
 				_status->setText(QStringLiteral("Signed in. Loading friends…"));
 #if defined(LARPTRIX_HAS_QT_WEBSOCKETS) && LARPTRIX_HAS_QT_WEBSOCKETS
 				QString socketError;
@@ -326,7 +326,7 @@ LoginWidget::LoginWidget(QWidget *parent)
 					_liveStatus->setStyleSheet(QString());
 					_liveStatus->setText(QStringLiteral("Connecting to live updates…"));
 				} else {
-					_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+					_liveStatus->setStyleSheet(QStringLiteral("color: #e06c75;"));
 					_liveStatus->setText(socketError);
 				}
 #endif
