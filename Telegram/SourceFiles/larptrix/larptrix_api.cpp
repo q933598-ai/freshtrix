@@ -8,6 +8,8 @@ Freshtrix Larptrix API bridge.
 #include <QtCore/QRegularExpression>
 #include <QtCore/QUrl>
 #include <QtNetwork/QNetworkRequest>
+#include <QtNetwork/QNetworkCookie>
+#include <QtNetwork/QNetworkCookieJar>
 
 namespace Larptrix {
 namespace {
@@ -64,6 +66,25 @@ QString Api::serverUrl() const {
 
 bool Api::isConfigured() const {
 	return !_serverUrl.isEmpty();
+}
+
+QByteArray Api::sessionCookieHeader() const {
+	if (_serverUrl.isEmpty() || !_network.cookieJar()) {
+		return {};
+	}
+	const auto cookies = _network.cookieJar()->cookiesForUrl(QUrl(_serverUrl));
+	QByteArray result;
+	for (const auto &cookie : cookies) {
+		const auto value = cookie.toRawForm(QNetworkCookie::NameAndValueOnly);
+		if (value.isEmpty()) {
+			continue;
+		}
+		if (!result.isEmpty()) {
+			result += QByteArrayLiteral("; ");
+		}
+		result += value;
+	}
+	return result;
 }
 
 void Api::loginWithPassword(
