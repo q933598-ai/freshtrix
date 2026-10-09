@@ -9,6 +9,7 @@ Freshtrix Larptrix sign-in screen.
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QListWidget>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QStackedWidget>
@@ -158,6 +159,17 @@ LoginWidget::LoginWidget(QWidget *parent)
 	_status->setWordWrap(true);
 	_status->setAlignment(Qt::AlignHCenter);
 	root->addWidget(_status);
+
+	_friendsList = new QListWidget(this);
+	_friendsList->setObjectName(QStringLiteral("friendsList"));
+	_friendsList->setMinimumHeight(120);
+	_friendsList->setMaximumHeight(220);
+	_friendsList->setStyleSheet(QStringLiteral(
+		"QListWidget { background: #303744; color: #e5e9f0; border: 1px solid #454f60; border-radius: 9px; padding: 5px; }"
+		"QListWidget::item { padding: 8px; border-radius: 5px; }"
+		"QListWidget::item:selected { background: #3b4656; }"));
+	_friendsList->hide();
+	root->addWidget(_friendsList);
 	root->addStretch(1);
 
 	auto footer = new QLabel(
@@ -193,8 +205,22 @@ LoginWidget::LoginWidget(QWidget *parent)
 		[this](const QString &route, const QJsonObject &payload) {
 			if (route != QStringLiteral("/api/friends")) return;
 			const auto friends = payload.value(QStringLiteral("friends")).toArray();
+			_friendsList->clear();
+			for (const auto &value : friends) {
+				const auto friendObject = value.toObject();
+				const auto name = friendObject.value(QStringLiteral("display_name")).toString();
+				const auto username = friendObject.value(QStringLiteral("username")).toString();
+				const auto label = !name.isEmpty() ? name
+					: (!username.isEmpty() ? username
+					: friendObject.value(QStringLiteral("user_id")).toString());
+				auto item = new QListWidgetItem(label, _friendsList);
+				if (!username.isEmpty() && username != label) {
+					item->setToolTip(QStringLiteral("@%1").arg(username));
+				}
+			}
+			_friendsList->show();
 			_status->setStyleSheet(QStringLiteral("color: #a3be8c;"));
-			_status->setText(QStringLiteral("Connected. Friends: %1").arg(friends.size()));
+			_status->setText(QStringLiteral("Connected · %1 friend(s)").arg(friends.size()));
 		});
 	connect(&_api, &Api::authenticationChanged, this,
 		[this](bool authenticated, const QJsonObject &user) {
