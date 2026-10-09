@@ -2890,6 +2890,8 @@ target_sources(Telegram PRIVATE
     SourceFiles/larptrix/larptrix_api.h
     SourceFiles/larptrix/larptrix_login_widget.cpp
     SourceFiles/larptrix/larptrix_login_widget.h
+    SourceFiles/larptrix/larptrix_session_model.cpp
+    SourceFiles/larptrix/larptrix_session_model.h
 )
 
 # WebSockets is not part of every supported TDesktop Qt bundle. Enable the
