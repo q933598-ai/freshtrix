@@ -6,6 +6,7 @@ Freshtrix-side session model for Larptrix wire events.
 #include <QtCore/QHash>
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonObject>
+#include <QtCore/QJsonValue>
 #include <QtCore/QObject>
 #include <QtCore/QString>
 
