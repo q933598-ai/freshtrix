@@ -4,6 +4,16 @@ Branch: `larptrix-port`
 
 This audit is based on the tracked source tree and Larptrix's current public source. It identifies the first investigation seams; it is not a claim that the application has been built or run.
 
+## Findings confirmed in source
+
+- `Telegram/SourceFiles/main.cpp` delegates startup to `Core::Launcher::Create(...)`; replacing app behavior begins in the launcher/startup architecture, not in `main()` alone.
+- `Telegram/SourceFiles/intro/intro_widget.cpp` directly subscribes to the account's MTProto instance stream (`_account->mtpValue()`), stores an `MTP::Instance`, and offers phone/QR entry points. This intro flow is coupled to Telegram account infrastructure, so it cannot simply be relabeled as Larptrix login.
+- `Telegram/SourceFiles/main/main_session.cpp` pulls in `apiwrap.h`, Telegram API updates/privacy/peer-color components, MTProto config, Telegram storage and Telegram-specific data components. This confirms the main session is deeply integrated with Telegram services.
+- `Telegram/SourceFiles/mtproto/` contains the transport, session, key, data-center, and schema code for MTProto. Larptrix's HTTP/WebSocket protocol is incompatible with this transport.
+- The source tree contains 10,772 tracked paths in the recursive Git tree response. It includes gitlink-style submodule entries, so the GitHub tree view alone does not prove all dependency sources are present locally or that a build succeeds.
+
+These observations support a cautious adapter-first port, not a large search-and-replace.
+
 ## Key finding
 
 FreshGram is a full Telegram Desktop C++/Qt application, not a thin skin over an independent messenger UI. The repository has a large Telegram data/session/API architecture and generated Telegram API schema. Larptrix is a separate Axum HTTP + WebSocket service with JSON messages and cookie sessions. There is no compatible protocol switch or single server URL replacement.
@@ -81,6 +91,7 @@ These names are a proposal, not existing files. Before adding them, inspect the 
 - [x] Created the `larptrix-port` branch.
 - [x] Documented the Larptrix-only product decision and port phases.
 - [x] Identified primary FreshGram and Larptrix protocol entry points.
+- [x] Inspected startup, intro authorization, main-session, and MTProto source entry points.
 - [ ] Reproducible FreshGram baseline build verified.
 - [ ] C++ Larptrix HTTP/WebSocket adapter implemented.
 - [ ] Login and messaging tested against a Larptrix server.
