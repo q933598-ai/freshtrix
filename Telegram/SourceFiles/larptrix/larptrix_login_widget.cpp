@@ -235,36 +235,30 @@ LoginWidget::LoginWidget(QWidget *parent)
 			_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
 			_liveStatus->setText(message);
 		});
-	connect(_webSocket, &WebSocketClient::serverEvent, this,
-		[this](const QJsonObject &event) {
-			const auto type = event.value(QStringLiteral("type")).toString();
-			if (type == QStringLiteral("welcome")) {
-				const auto users = event.value(QStringLiteral("users")).toArray();
-				_liveStatus->setStyleSheet(QStringLiteral("color: #a3be8c;"));
-				_liveStatus->setText(
-					QStringLiteral("Live updates connected · %1 directory entries")
-						.arg(users.size()));
-			} else if (type == QStringLiteral("directory")) {
-				const auto users = event.value(QStringLiteral("users")).toArray();
-				_liveStatus->setText(
-					QStringLiteral("Live updates connected · %1 directory entries")
-						.arg(users.size()));
-			} else if (type == QStringLiteral("chat")) {
-				const auto peer = event.value(QStringLiteral("peer")).toObject();
-				const auto history = event.value(QStringLiteral("history")).toArray();
-				_liveStatus->setText(
-					QStringLiteral("History received for %1 · %2 encrypted message(s). Decryption is not wired yet.")
-						.arg(peer.value(QStringLiteral("display_name")).toString())
-						.arg(history.size()));
-			} else if (type == QStringLiteral("message")) {
-				_liveStatus->setText(
-					QStringLiteral("A new encrypted message event was received."));
-			} else if (type == QStringLiteral("error")) {
-				_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
-				_liveStatus->setText(
-					event.value(QStringLiteral("message")).toString(
-						QStringLiteral("Larptrix reported a WebSocket error.")));
-			}
+	connect(_webSocket, &WebSocketClient::serverEvent,
+		&_model, &SessionModel::applyEvent);
+	connect(&_model, &SessionModel::sessionReady, this, [this] {
+		_liveStatus->setStyleSheet(QStringLiteral("color: #a3be8c;"));
+		_liveStatus->setText(
+			QStringLiteral("Live updates connected · %1 directory entries")
+				.arg(_model.directory().size()));
+	});
+	connect(&_model, &SessionModel::chatHistoryChanged, this,
+		[this](const QString &, const QJsonArray &history) {
+			_liveStatus->setStyleSheet(QString());
+			_liveStatus->setText(
+				QStringLiteral("History loaded · %1 encrypted message(s). Decryption is not wired yet.")
+					.arg(history.size()));
+		});
+	connect(&_model, &SessionModel::newMessageReceived, this,
+		[this](const QString &, const QJsonObject &) {
+			_liveStatus->setText(
+				QStringLiteral("A new encrypted message event was received."));
+		});
+	connect(&_model, &SessionModel::protocolError, this,
+		[this](const QString &message) {
+			_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+			_liveStatus->setText(message);
 		});
 	connect(_friendsList, &QListWidget::itemDoubleClicked, this,
 		[this](QListWidgetItem *item) {
@@ -294,6 +288,7 @@ LoginWidget::LoginWidget(QWidget *parent)
 		[this](const QString &route, const QJsonObject &payload) {
 			if (route != QStringLiteral("/api/friends")) return;
 			const auto friends = payload.value(QStringLiteral("friends")).toArray();
+			_model.setFriends(friends);
 			_friendsList->clear();
 			for (const auto &value : friends) {
 				const auto friendObject = value.toObject();
@@ -318,6 +313,7 @@ LoginWidget::LoginWidget(QWidget *parent)
 			_login->setEnabled(true);
 			_login->setText(QStringLiteral("Sign in"));
 			if (authenticated) {
+				_model.setCurrentUser(user);
 				QSettings().setValue(QStringLiteral("Larptrix/serverUrl"), _api.serverUrl());
 				_password->clear();
 				_accessKey->clear();
