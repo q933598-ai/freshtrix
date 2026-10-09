@@ -16,6 +16,8 @@ class QListWidget;
 
 namespace Larptrix {
 
+class WebSocketClient;
+
 // A self-contained sign-in surface styled to fit FreshGram's centered intro
 // flow. The host application can embed it in the intro window or use it as
 // the initial page while the Telegram intro is being removed.
@@ -43,7 +45,9 @@ private:
 	QPushButton *_accessKeyMode = nullptr;
 	QPushButton *_login = nullptr;
 	QLabel *_status = nullptr;
+	QLabel *_liveStatus = nullptr;
 	QListWidget *_friendsList = nullptr;
+	WebSocketClient *_webSocket = nullptr;
 	bool _usingAccessKey = false;
 };
 
