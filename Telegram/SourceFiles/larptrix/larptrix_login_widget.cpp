@@ -10,6 +10,7 @@ Freshtrix Larptrix sign-in screen.
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QStackedWidget>
+#include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
 
 namespace Larptrix {
