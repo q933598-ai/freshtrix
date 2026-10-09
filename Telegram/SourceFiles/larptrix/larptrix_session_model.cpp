@@ -132,7 +132,7 @@ void SessionModel::applyEvent(const QJsonObject &event) {
 			auto user = _usersById.value(id);
 			user.insert(QStringLiteral("user_id"), id);
 			user.insert(QStringLiteral("presence"), status);
-			_usersById.insert(id, user);
+			cacheUser(user);
 			emit presenceChanged(id, status);
 		}
 	} else if (type == QStringLiteral("error")) {
@@ -186,7 +186,41 @@ QJsonArray SessionModel::mergeUserArray(const QJsonArray &users) {
 void SessionModel::cacheUser(const QJsonObject &user) {
 	const auto id = userId(user);
 	if (id.isEmpty()) return;
-	_usersById.insert(id, mergeObjects(_usersById.value(id), user));
+	const auto previous = _usersById.value(id);
+	const auto combined = mergeObjects(previous, user);
+	_usersById.insert(id, combined);
+
+	QJsonArray updatedFriends;
+	bool friendsChangedValue = false;
+	for (const auto &value : _friends) {
+		const auto current = value.toObject();
+		if (userId(current) == id) {
+			updatedFriends.append(combined);
+			friendsChangedValue = friendsChangedValue || current != combined;
+		} else {
+			updatedFriends.append(value);
+		}
+	}
+	if (friendsChangedValue) {
+		_friends = updatedFriends;
+		emit friendsChanged(_friends);
+	}
+
+	QJsonArray updatedDirectory;
+	bool directoryChangedValue = false;
+	for (const auto &value : _directory) {
+		const auto current = value.toObject();
+		if (userId(current) == id) {
+			updatedDirectory.append(combined);
+			directoryChangedValue = directoryChangedValue || current != combined;
+		} else {
+			updatedDirectory.append(value);
+		}
+	}
+	if (directoryChangedValue) {
+		_directory = updatedDirectory;
+		emit directoryChanged(_directory);
+	}
 }
 
 QString SessionModel::peerIdForMessage(const QJsonObject &message) const {
