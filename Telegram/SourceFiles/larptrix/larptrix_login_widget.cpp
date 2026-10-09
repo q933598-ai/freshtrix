@@ -16,6 +16,10 @@ Freshtrix Larptrix sign-in screen.
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QVBoxLayout>
 
+#if defined(LARPTRIX_HAS_QT_WEBSOCKETS) && LARPTRIX_HAS_QT_WEBSOCKETS
+#include "larptrix/larptrix_ws_client.h"
+#endif
+
 namespace Larptrix {
 namespace {
 
@@ -82,6 +86,7 @@ LoginWidget::LoginWidget(QWidget *parent)
 			border: 1px solid #81a1c1;
 		}
 		QLabel#status { color: #bf616a; }
+	QLabel#liveStatus { color: #aab3c2; font-size: 12px; }
 	)"));
 
 	auto root = new QVBoxLayout(this);
@@ -170,7 +175,19 @@ LoginWidget::LoginWidget(QWidget *parent)
 		"QListWidget::item:selected { background: #3b4656; }"));
 	_friendsList->hide();
 	root->addWidget(_friendsList);
+
+	_liveStatus = new QLabel(
+		QStringLiteral("Live updates connect after sign-in."), this);
+	_liveStatus->setObjectName(QStringLiteral("liveStatus"));
+	_liveStatus->setWordWrap(true);
+	_liveStatus->setAlignment(Qt::AlignHCenter);
+	root->addWidget(_liveStatus);
+
 	root->addStretch(1);
+
+#if defined(LARPTRIX_HAS_QT_WEBSOCKETS) && LARPTRIX_HAS_QT_WEBSOCKETS
+	_webSocket = new WebSocketClient(this);
+#endif
 
 	auto footer = new QLabel(
 		QStringLiteral("A server you choose. Your Larptrix account."),
@@ -195,6 +212,78 @@ LoginWidget::LoginWidget(QWidget *parent)
 	connect(_accessKey, &QLineEdit::returnPressed, this, [this] {
 		submit();
 	});
+#if defined(LARPTRIX_HAS_QT_WEBSOCKETS) && LARPTRIX_HAS_QT_WEBSOCKETS
+	connect(_webSocket, &WebSocketClient::connected, this, [this] {
+		_liveStatus->setProperty("liveConnected", true);
+		_liveStatus->setStyleSheet(QStringLiteral("color: #a3be8c;"));
+		_liveStatus->setText(QStringLiteral("Live connection established."));
+	});
+	connect(_webSocket, &WebSocketClient::connectionFailed, this,
+		[this](const QString &message) {
+			_liveStatus->setProperty("liveConnected", false);
+			_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+			_liveStatus->setText(QStringLiteral("Live connection failed: %1").arg(message));
+		});
+	connect(_webSocket, &WebSocketClient::disconnected, this, [this] {
+		if (!_liveStatus->property("liveConnected").toBool()) return;
+		_liveStatus->setProperty("liveConnected", false);
+		_liveStatus->setStyleSheet(QString());
+		_liveStatus->setText(QStringLiteral("Live connection disconnected."));
+	});
+	connect(_webSocket, &WebSocketClient::protocolError, this,
+		[this](const QString &message) {
+			_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+			_liveStatus->setText(message);
+		});
+	connect(_webSocket, &WebSocketClient::serverEvent, this,
+		[this](const QJsonObject &event) {
+			const auto type = event.value(QStringLiteral("type")).toString();
+			if (type == QStringLiteral("welcome")) {
+				const auto users = event.value(QStringLiteral("users")).toArray();
+				_liveStatus->setStyleSheet(QStringLiteral("color: #a3be8c;"));
+				_liveStatus->setText(
+					QStringLiteral("Live updates connected · %1 directory entries")
+						.arg(users.size()));
+			} else if (type == QStringLiteral("directory")) {
+				const auto users = event.value(QStringLiteral("users")).toArray();
+				_liveStatus->setText(
+					QStringLiteral("Live updates connected · %1 directory entries")
+						.arg(users.size()));
+			} else if (type == QStringLiteral("chat")) {
+				const auto peer = event.value(QStringLiteral("peer")).toObject();
+				const auto history = event.value(QStringLiteral("history")).toArray();
+				_liveStatus->setText(
+					QStringLiteral("History received for %1 · %2 encrypted message(s). Decryption is not wired yet.")
+						.arg(peer.value(QStringLiteral("display_name")).toString())
+						.arg(history.size()));
+			} else if (type == QStringLiteral("message")) {
+				_liveStatus->setText(
+					QStringLiteral("A new encrypted message event was received."));
+			} else if (type == QStringLiteral("error")) {
+				_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+				_liveStatus->setText(
+					event.value(QStringLiteral("message")).toString(
+						QStringLiteral("Larptrix reported a WebSocket error.")));
+			}
+		});
+	connect(_friendsList, &QListWidget::itemDoubleClicked, this,
+		[this](QListWidgetItem *item) {
+			if (!item) return;
+			if (!_webSocket->isConnected()) {
+				_liveStatus->setText(QStringLiteral("Live connection is not ready."));
+				return;
+			}
+			const auto peerId = item->data(Qt::UserRole).toString();
+			if (peerId.isEmpty()) return;
+			_webSocket->openChat(peerId);
+			_liveStatus->setStyleSheet(QString());
+			_liveStatus->setText(QStringLiteral("Requesting encrypted chat history…"));
+		});
+#else
+	_liveStatus->setText(QStringLiteral(
+		"Live updates are disabled in this build because Qt WebSockets is unavailable."));
+#endif
+
 	connect(&_api, &Api::requestFailed, this,
 		[this](const QString &, const QString &message) {
 			_login->setEnabled(true);
@@ -214,6 +303,8 @@ LoginWidget::LoginWidget(QWidget *parent)
 					: (!username.isEmpty() ? username
 					: friendObject.value(QStringLiteral("user_id")).toString());
 				auto item = new QListWidgetItem(label, _friendsList);
+				item->setData(Qt::UserRole,
+					friendObject.value(QStringLiteral("user_id")).toString());
 				if (!username.isEmpty() && username != label) {
 					item->setToolTip(QStringLiteral("@%1").arg(username));
 				}
@@ -232,6 +323,17 @@ LoginWidget::LoginWidget(QWidget *parent)
 				_accessKey->clear();
 				_status->setStyleSheet(QStringLiteral("color: #a3be8c;"));
 				_status->setText(QStringLiteral("Signed in. Loading friends…"));
+#if defined(LARPTRIX_HAS_QT_WEBSOCKETS) && LARPTRIX_HAS_QT_WEBSOCKETS
+				QString socketError;
+				if (_webSocket->open(
+						_api.serverUrl(), _api.sessionCookieHeader(), &socketError)) {
+					_liveStatus->setStyleSheet(QString());
+					_liveStatus->setText(QStringLiteral("Connecting to live updates…"));
+				} else {
+					_liveStatus->setStyleSheet(QStringLiteral("color: #bf616a;"));
+					_liveStatus->setText(socketError);
+				}
+#endif
 				_api.fetchFriends();
 				emit authenticated(user);
 			} else {
