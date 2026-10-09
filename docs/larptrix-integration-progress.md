@@ -14,7 +14,8 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 - [x] Register the new C++ files in the existing desktop target.
 - [x] Add a centered, FreshGram-inspired Larptrix login widget with server URL, email/password and access-key modes, connection/error status, and authenticated-user signal.
 - [x] Remember the selected server URL between launches; clear password/access-key fields after successful authentication.
-- [x] After login, request `GET /api/friends` and display the number of friends returned by the chosen server.
+- [x] After login, request `GET /api/friends` and render returned friends in a small Nord-styled list, showing display names and usernames when available.
+- [x] Remove a duplicate `fetchFriends()` declaration from the API header.
 - [x] Route the existing MainWindow intro entry point to the Larptrix login widget and include it in focus, resize, and widget-cleanup handling.
 
 ## Not implemented yet
@@ -30,4 +31,4 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 - Larptrix login is HTTP cookie-session authentication. Successful `/api/login` and `/api/me` return a `UserInfo` object directly; the account-creation endpoint has a different wrapper.
 - `/ws` is a separate authenticated JSON WebSocket. Its messages are defined in the Larptrix `crates/protocol` crate; do not attempt to reuse MTProto for it.
 - The login widget is connected to the MainWindow intro entry point and now requests the friends endpoint after authentication, but the app is still an inherited Telegram Desktop codebase and has not been built or live-server tested in this work session.
-- A successful login currently confirms authentication in the login widget; it does not yet transition into a Larptrix chat interface. The next functional milestone is the authenticated `/ws` connection and a minimal users/chat view.
+- A successful login currently confirms authentication and displays the friends returned by `/api/friends`; it does not yet transition into a Larptrix chat interface. The next functional milestone is checking the Qt WebSocket dependency path, then implementing the authenticated `/ws` connection and a minimal users/chat view.
