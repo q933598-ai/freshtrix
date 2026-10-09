@@ -83,9 +83,10 @@ bool WebSocketClient::open(
 	request.setRawHeader("Origin", origin.toUtf8());
 	request.setRawHeader("Cookie", cookieHeader);
 
-	_connecting = true;
 	_heartbeat->stop();
+	_connecting = false;
 	_socket->abort();
+	_connecting = true;
 	_socket->open(request);
 	return true;
 }
