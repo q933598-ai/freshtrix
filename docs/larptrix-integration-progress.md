@@ -32,3 +32,17 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 - `/ws` is a separate authenticated JSON WebSocket. Its messages are defined in the Larptrix `crates/protocol` crate; do not attempt to reuse MTProto for it.
 - The login widget is connected to the MainWindow intro entry point and now requests the friends endpoint after authentication, but the app is still an inherited Telegram Desktop codebase and has not been built or live-server tested in this work session.
 - A successful login currently confirms authentication and displays the friends returned by `/api/friends`; it does not yet transition into a Larptrix chat interface. The next functional milestone is checking the Qt WebSocket dependency path, then implementing the authenticated `/ws` connection and a minimal users/chat view.
+
+
+## UI porting rule
+
+The goal is to reuse the existing FreshGram/Freshtrix interface and replace Telegram-backed behavior with Larptrix-backed behavior. Do not build a parallel generic UI or make Nord the mandatory visual theme. Keep existing chat-list, conversation, avatar, and settings components wherever their dependencies can be separated from Telegram session/data objects.
+
+## Next implementation slice: live chat transport
+
+The Larptrix protocol crate currently defines these WebSocket messages:
+
+- Client: `ping`, `open { peer_id }`, `send { peer_id, body, attachment_id / attachment_ids }`, `set_presence`, plus reactions, deletes, call signaling and crypto-resync messages.
+- Server: `welcome { user, users }`, `directory { users }`, `groups { groups }`, `chat { peer, history }`, `message { message }`, presence, reactions, deletes, call signaling, crypto-resync, and errors.
+
+The client must keep the authenticated HTTP cookie session for the WebSocket handshake, map the server URL from HTTP(S) to WS(S), and only expose sending after the existing Larptrix E2E flow is integrated. Do not send plaintext messages as a shortcut. The current Freshtrix API bridge has no WebSocket transport yet, and Qt WebSockets availability/linkage has not been confirmed.
