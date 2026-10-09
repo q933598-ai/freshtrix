@@ -52,3 +52,14 @@ The Larptrix protocol crate currently defines these WebSocket messages:
 - Server: `welcome { user, users }`, `directory { users }`, `groups { groups }`, `chat { peer, history }`, `message { message }`, presence, reactions, deletes, call signaling, crypto-resync, and errors.
 
 `Larptrix::WebSocketClient` now handles transport when Qt WebSockets is available: it maps HTTP(S) to WS(S), forwards the session cookie and same-origin header, parses JSON server events, and sends heartbeat/presence/open-chat events. `SessionModel` now converts these events into reusable client state. CMake enables WebSockets conditionally because some TDesktop Qt bundles do not ship the module. The code has not been built or tested against a live server yet.
+
+
+## Existing FreshGram UI dependency audit
+
+The existing visual interface cannot yet consume Larptrix JSON directly:
+
+- `MainWindow::setupMain()` still requires `account().sessionExists()` and constructs the original `MainWidget` with a `Window::SessionController`.
+- The native dialogs widget also takes a `Window::SessionController`; rows and history are backed by Telegram's `PeerData`, `History`, `HistoryItem`, and `Data::Thread` objects.
+- Larptrix now has a separate `SessionModel`; it is not a replacement for those Telegram types. Constructing the original main window widgets without the Telegram session would be unsafe and incorrect.
+
+The UI migration therefore needs an adapter/refactor boundary between Larptrix conversation data and the existing presentation. The goal remains preserving FreshGram's layout and visual components, not introducing a new permanent theme or claiming that the interim login/friends widget is the finished client. Until this boundary exists, the real chat UI and E2E display/send path remain incomplete.
