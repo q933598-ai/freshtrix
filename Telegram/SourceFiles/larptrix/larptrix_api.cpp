@@ -90,6 +90,10 @@ void Api::fetchCurrentUser() {
 	getJson(QStringLiteral("/api/me"));
 }
 
+void Api::fetchFriends() {
+	getJson(QStringLiteral("/api/friends"));
+}
+
 void Api::logout() {
 	postJson(QStringLiteral("/api/logout"), {});
 }
