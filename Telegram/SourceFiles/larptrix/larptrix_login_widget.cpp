@@ -176,6 +176,31 @@ LoginWidget::LoginWidget(QWidget *parent)
 	_friendsList->hide();
 	root->addWidget(_friendsList);
 
+	connect(&_model, &SessionModel::friendsChanged, this,
+		[this](const QJsonArray &friends) {
+			_friendsList->clear();
+			for (const auto &value : friends) {
+				const auto friendObject = value.toObject();
+				const auto name = friendObject.value(QStringLiteral("display_name")).toString();
+				const auto username = friendObject.value(QStringLiteral("username")).toString();
+				const auto id = friendObject.value(QStringLiteral("user_id")).toString();
+				const auto label = !name.isEmpty() ? name
+					: (!username.isEmpty() ? username : id);
+				auto item = new QListWidgetItem(label, _friendsList);
+				item->setData(Qt::UserRole, id);
+				auto tooltip = username.isEmpty()
+					? QString()
+					: QStringLiteral("@%1").arg(username);
+				const auto presence = friendObject.value(QStringLiteral("presence")).toString();
+				if (!presence.isEmpty()) {
+					if (!tooltip.isEmpty()) tooltip += QStringLiteral(" · ");
+					tooltip += presence;
+				}
+				item->setToolTip(tooltip);
+			}
+			if (!friends.isEmpty()) _friendsList->show();
+		});
+
 	_liveStatus = new QLabel(
 		QStringLiteral("Live updates connect after sign-in."), this);
 	_liveStatus->setObjectName(QStringLiteral("liveStatus"));
@@ -289,21 +314,6 @@ LoginWidget::LoginWidget(QWidget *parent)
 			if (route != QStringLiteral("/api/friends")) return;
 			const auto friends = payload.value(QStringLiteral("friends")).toArray();
 			_model.setFriends(friends);
-			_friendsList->clear();
-			for (const auto &value : friends) {
-				const auto friendObject = value.toObject();
-				const auto name = friendObject.value(QStringLiteral("display_name")).toString();
-				const auto username = friendObject.value(QStringLiteral("username")).toString();
-				const auto label = !name.isEmpty() ? name
-					: (!username.isEmpty() ? username
-					: friendObject.value(QStringLiteral("user_id")).toString());
-				auto item = new QListWidgetItem(label, _friendsList);
-				item->setData(Qt::UserRole,
-					friendObject.value(QStringLiteral("user_id")).toString());
-				if (!username.isEmpty() && username != label) {
-					item->setToolTip(QStringLiteral("@%1").arg(username));
-				}
-			}
 			_friendsList->show();
 			_status->setStyleSheet(QStringLiteral("color: #bacf7a;"));
 			_status->setText(QStringLiteral("Connected · %1 friend(s)").arg(friends.size()));
