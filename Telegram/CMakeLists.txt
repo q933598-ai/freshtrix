@@ -2882,3 +2882,10 @@ if (LINUX AND DESKTOP_APP_USE_PACKAGED)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/io.github.snowyfluffy.freshgram.service" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/dbus-1/services")
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/io.github.snowyfluffy.freshgram.metainfo.xml" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo")
 endif()
+
+# Freshtrix's Larptrix integration is kept isolated from the inherited
+# Telegram-specific source tree so the port can replace it incrementally.
+target_sources(Telegram PRIVATE
+    SourceFiles/larptrix/larptrix_api.cpp
+    SourceFiles/larptrix/larptrix_api.h
+)
