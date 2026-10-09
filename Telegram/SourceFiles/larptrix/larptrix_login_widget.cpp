@@ -4,6 +4,7 @@ Freshtrix Larptrix sign-in screen.
 #include "larptrix/larptrix_login_widget.h"
 
 #include <QtCore/QJsonObject>
+#include <QtCore/QSettings>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -100,7 +101,8 @@ LoginWidget::LoginWidget(QWidget *parent)
 	auto serverLabel = new QLabel(QStringLiteral("Server address"), this);
 	root->addWidget(serverLabel);
 	_server = makeField(this, QStringLiteral("https://chat.example.com"));
-	_server->setText(QStringLiteral("https://"));
+	auto settings = QSettings();
+	_server->setText(settings.value(QStringLiteral("Larptrix/serverUrl")).toString());
 	root->addWidget(_server);
 
 	auto modeRow = new QHBoxLayout;
@@ -191,6 +193,9 @@ LoginWidget::LoginWidget(QWidget *parent)
 			_login->setEnabled(true);
 			_login->setText(QStringLiteral("Sign in"));
 			if (authenticated) {
+				QSettings().setValue(QStringLiteral("Larptrix/serverUrl"), _api.serverUrl());
+				_password->clear();
+				_accessKey->clear();
 				_status->setStyleSheet(QStringLiteral("color: #a3be8c;"));
 				_status->setText(QStringLiteral("Connected successfully."));
 				emit authenticated(user);
@@ -223,6 +228,7 @@ void LoginWidget::submit() {
 		return;
 	}
 
+	QSettings().setValue(QStringLiteral("Larptrix/serverUrl"), _api.serverUrl());
 	_login->setEnabled(false);
 	_login->setText(QStringLiteral("Connecting…"));
 	_status->setStyleSheet(QString());
