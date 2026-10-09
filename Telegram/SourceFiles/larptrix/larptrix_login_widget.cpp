@@ -5,6 +5,7 @@ Freshtrix Larptrix sign-in screen.
 
 #include <QtCore/QJsonObject>
 #include <QtCore/QSettings>
+#include <QtCore/QJsonArray>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -188,6 +189,13 @@ LoginWidget::LoginWidget(QWidget *parent)
 			_login->setText(QStringLiteral("Sign in"));
 			showError(message);
 		});
+	connect(&_api, &Api::requestSucceeded, this,
+		[this](const QString &route, const QJsonObject &payload) {
+			if (route != QStringLiteral("/api/friends")) return;
+			const auto friends = payload.value(QStringLiteral("friends")).toArray();
+			_status->setStyleSheet(QStringLiteral("color: #a3be8c;"));
+			_status->setText(QStringLiteral("Connected. Friends: %1").arg(friends.size()));
+		});
 	connect(&_api, &Api::authenticationChanged, this,
 		[this](bool authenticated, const QJsonObject &user) {
 			_login->setEnabled(true);
@@ -197,7 +205,8 @@ LoginWidget::LoginWidget(QWidget *parent)
 				_password->clear();
 				_accessKey->clear();
 				_status->setStyleSheet(QStringLiteral("color: #a3be8c;"));
-				_status->setText(QStringLiteral("Connected successfully."));
+				_status->setText(QStringLiteral("Signed in. Loading friends…"));
+				_api.fetchFriends();
 				emit authenticated(user);
 			} else {
 				showError(QStringLiteral(
