@@ -3,6 +3,7 @@ Freshtrix Larptrix WebSocket transport.
 */
 #pragma once
 
+#include <QtCore/QByteArray>
 #include <QtCore/QJsonObject>
 #include <QtCore/QObject>
 #include <QtCore/QString>
