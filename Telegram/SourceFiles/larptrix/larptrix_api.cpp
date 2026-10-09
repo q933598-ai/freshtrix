@@ -5,6 +5,7 @@ Freshtrix Larptrix API bridge.
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonParseError>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QUrl>
 #include <QtNetwork/QNetworkRequest>
 
@@ -163,9 +164,13 @@ void Api::handleReply(const QString &route, QNetworkReply *reply) {
 		: QJsonObject();
 	if (route == QStringLiteral("/api/login")
 		|| route == QStringLiteral("/api/me")) {
-		const auto user = payload.value(QStringLiteral("user")).toObject();
-		_authenticated = !user.isEmpty();
-		emit authenticationChanged(_authenticated, user);
+		// Larptrix returns UserInfo directly for /api/me and successful
+		// password/access-key login; registration uses a separate wrapper.
+		const auto user = payload.value(QStringLiteral("user")).isObject()
+			? payload.value(QStringLiteral("user")).toObject()
+			: payload;
+		_authenticated = user.contains(QStringLiteral("user_id"));
+		emit authenticationChanged(_authenticated, _authenticated ? user : QJsonObject{});
 	} else if (route == QStringLiteral("/api/logout")) {
 		_authenticated = false;
 		emit authenticationChanged(false, {});
