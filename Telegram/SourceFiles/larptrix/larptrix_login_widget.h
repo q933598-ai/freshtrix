@@ -8,10 +8,12 @@ This file is part of the Freshtrix experimental port.
 
 #include <QtWidgets/QWidget>
 
+class QVBoxLayout;
+class QListWidget;
+
 class QLineEdit;
 class QLabel;
 class QPushButton;
-class QStackedWidget;
 
 namespace Larptrix {
 
@@ -31,8 +33,13 @@ private:
 	void setAccessKeyMode(bool enabled);
 	void submit();
 	void showError(const QString &message);
+	void showSession(const QJsonObject &user);
+	void showLoginForm();
 
 	Api _api;
+	QVBoxLayout *_root = nullptr;
+	QListWidget *_friendsList = nullptr;
+	QWidget *_sessionPage = nullptr;
 	QLineEdit *_server = nullptr;
 	QLineEdit *_email = nullptr;
 	QLineEdit *_password = nullptr;
