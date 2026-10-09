@@ -299,8 +299,7 @@ LoginWidget::LoginWidget(QWidget *parent)
 			_liveStatus->setText(QStringLiteral("Requesting encrypted chat history…"));
 		});
 #else
-	_liveStatus->setText(QStringLiteral(
-		"Live updates are disabled in this build because Qt WebSockets is unavailable."));
+	// The missing-module explanation is shown after sign-in below.
 #endif
 
 	connect(&_api, &Api::requestFailed, this,
@@ -339,6 +338,10 @@ LoginWidget::LoginWidget(QWidget *parent)
 					_liveStatus->setStyleSheet(QStringLiteral("color: #e06c75;"));
 					_liveStatus->setText(socketError);
 				}
+#else
+				_liveStatus->setStyleSheet(QStringLiteral("color: #e06c75;"));
+				_liveStatus->setText(QStringLiteral(
+					"Live updates unavailable: this build has no Qt WebSockets module."));
 #endif
 				_api.fetchFriends();
 				emit authenticated(user);
