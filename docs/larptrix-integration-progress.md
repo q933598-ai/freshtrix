@@ -14,10 +14,10 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 - [x] Register the new C++ files in the existing desktop target.
 - [x] Add a centered, FreshGram-inspired Larptrix login widget with server URL, email/password and access-key modes, connection/error status, and authenticated-user signal.
 - [x] Remember the selected server URL between launches; clear password/access-key fields after successful authentication.
+- [x] Route the existing MainWindow intro entry point to the Larptrix login widget and include it in focus, resize, and widget-cleanup handling.
 
 ## Not implemented yet
 
-- [ ] Wire the new login widget into `MainWindow` startup so it replaces the Telegram intro instead of merely compiling as a component.
 - [ ] Replace the existing Telegram intro and MTProto account/session lifecycle.
 - [ ] Implement the `/ws` client and parse Larptrix server events.
 - [ ] Replace Telegram data models and history UI with Larptrix users, groups, channels, and messages.
@@ -28,4 +28,5 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 
 - Larptrix login is HTTP cookie-session authentication. Successful `/api/login` and `/api/me` return a `UserInfo` object directly; the account-creation endpoint has a different wrapper.
 - `/ws` is a separate authenticated JSON WebSocket. Its messages are defined in the Larptrix `crates/protocol` crate; do not attempt to reuse MTProto for it.
-- The HTTP bridge is an initial integration layer, not yet connected to the visible login UI. No build or live-server test has been claimed for this change.
+- The login widget is now connected to the MainWindow intro entry point, but the app is still an inherited Telegram Desktop codebase and has not been built or live-server tested in this work session.
+- A successful login currently confirms authentication in the login widget; it does not yet transition into a Larptrix chat interface. The next functional milestone is the authenticated `/ws` connection and a minimal users/chat view.
