@@ -5,6 +5,7 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 ## Implemented foundation
 
 - [x] Add an isolated `Larptrix::Api` HTTP client under `Telegram/SourceFiles/larptrix/`.
+- [x] Add a transport-independent `SessionModel` that caches current user, friends, directory, groups, chat history and message metadata from server events.
 - [x] Normalize and validate an HTTP(S) server base URL; a missing scheme defaults to HTTPS.
 - [x] Implement password and access-key login requests to `POST /api/login`.
 - [x] Send a device name with login requests.
@@ -12,7 +13,8 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 - [x] Implement `GET /api/me` and `POST /api/logout`.
 - [x] Emit success/failure and authentication-state signals.
 - [x] Register the new C++ files in the existing desktop target.
-- [x] Add a centered, FreshGram-inspired Larptrix login widget with server URL, email/password and access-key modes, connection/error status, and authenticated-user signal.
+- [x] Add a temporary Larptrix login widget with server URL, email/password and access-key modes, connection/error status, and authenticated-user signal.
+- [x] Replace the interim login widget's Nord-blue hard-coded palette with a dark olive/light-green palette inspired by FreshGram. This does not replace the actual FreshGram chat UI.
 - [x] Remember the selected server URL between launches; clear password/access-key fields after successful authentication.
 - [x] After login, request `GET /api/friends` and show a temporary friends list with display names and usernames. This interim widget is not the final FreshGram chat UI.
 - [x] Remove a duplicate `fetchFriends()` declaration from the API header.
@@ -22,6 +24,7 @@ This checklist tracks actual port work on `larptrix-port`. It deliberately disti
 
 - [ ] Replace the existing Telegram intro and MTProto account/session lifecycle.
 - [x] Add an optional Qt WebSockets transport for authenticated `/ws` with Larptrix session-cookie forwarding, same-origin `Origin`, JSON event parsing, a heartbeat, presence, and open-chat requests.
+- [x] Route WebSocket events through `SessionModel`, including directory, groups, chat history, live messages, deletes, reactions, views and presence.
 - [ ] Render real-time users, groups, and chat history using the existing FreshGram UI components and Larptrix data models.
 - [ ] Port Matrix-compatible E2E device setup/decryption before rendering message contents or enabling message sending.
 - [ ] Replace Telegram data models and history UI with Larptrix users, groups, channels, and messages.
@@ -48,4 +51,4 @@ The Larptrix protocol crate currently defines these WebSocket messages:
 - Client: `ping`, `open { peer_id }`, `send { peer_id, body, attachment_id / attachment_ids }`, `set_presence`, plus reactions, deletes, call signaling and crypto-resync messages.
 - Server: `welcome { user, users }`, `directory { users }`, `groups { groups }`, `chat { peer, history }`, `message { message }`, presence, reactions, deletes, call signaling, crypto-resync, and errors.
 
-`Larptrix::WebSocketClient` now handles the transport when Qt WebSockets is available: it maps HTTP(S) to WS(S), forwards the session cookie and same-origin header, parses JSON server events, and sends heartbeat/presence/open-chat events. CMake enables it conditionally because some TDesktop Qt bundles do not ship WebSockets. The transport has not been built or tested against a live server yet.
+`Larptrix::WebSocketClient` now handles transport when Qt WebSockets is available: it maps HTTP(S) to WS(S), forwards the session cookie and same-origin header, parses JSON server events, and sends heartbeat/presence/open-chat events. `SessionModel` now converts these events into reusable client state. CMake enables WebSockets conditionally because some TDesktop Qt bundles do not ship the module. The code has not been built or tested against a live server yet.
